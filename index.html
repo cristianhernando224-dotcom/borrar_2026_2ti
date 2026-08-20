@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Reto de Multiplicación</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root{
+    --board: #16332b;
+    --board-2: #1c3e34;
+    --chalk: #f4f1e8;
+    --chalk-dim: #cdd6cd;
+    --yellow: #f2c14e;
+    --coral: #f28c6b;
+    --green: #7fbf8e;
+    --red: #e07a6b;
+    --line: rgba(244,241,232,0.16);
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background: radial-gradient(ellipse at top left, var(--board-2), var(--board) 70%);
+    font-family: 'Space Mono', monospace;
+    color: var(--chalk);
+    display:flex;
+    justify-content:center;
+    padding: 40px 18px 70px;
+  }
+
+  .frame{
+    width:100%;
+    max-width: 480px;
+  }
+
+  header{
+    text-align:center;
+    margin-bottom: 26px;
+  }
+
+  .eyebrow{
+    letter-spacing: 0.35em;
+    font-size: 11px;
+    color: var(--coral);
+    text-transform: uppercase;
+    margin: 0 0 6px;
+  }
+
+  h1{
+    font-family: 'Caveat', cursive;
+    font-size: 52px;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1;
+  }
+
+  h1 span{ color: var(--yellow); }
+
+  /* progress + score */
+  .status{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin: 26px 0 10px;
+    font-size: 12px;
+    color: var(--chalk-dim);
+    letter-spacing: 0.08em;
+  }
+
+  .score{
+    color: var(--yellow);
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  .progress-track{
+    width:100%;
+    height: 8px;
+    border-radius: 20px;
+    background: rgba(244,241,232,0.08);
+    overflow:hidden;
+    margin-bottom: 30px;
+  }
+
+  .progress-fill{
+    height:100%;
+    width:0%;
+    background: linear-gradient(90deg, var(--coral), var(--yellow));
+    border-radius: 20px;
+    transition: width .4s ease;
+  }
+
+  /* question card */
+  .card{
+    border: 1.5px dashed var(--line);
+    border-radius: 18px;
+    padding: 34px 20px;
+    text-align:center;
+  }
+
+  .question{
+    font-family: 'Caveat', cursive;
+    font-size: 58px;
+    color: var(--chalk);
+    margin-bottom: 26px;
+    line-height:1;
+  }
+
+  .question .op{ color: var(--coral); margin: 0 10px; }
+
+  .options{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .opt{
+    padding: 16px 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--chalk);
+    background: rgba(244,241,232,0.04);
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+
+  .opt:hover:not(:disabled){
+    border-color: var(--yellow);
+    color: var(--yellow);
+    transform: translateY(-2px);
+  }
+
+  .opt:disabled{ cursor:default; }
+
+  .opt.correct{
+    background: rgba(127,191,142,0.15);
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .opt.wrong{
+    background: rgba(224,122,107,0.15);
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  .feedback{
+    min-height: 22px;
+    margin-top: 18px;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    color: var(--chalk-dim);
+  }
+
+  .feedback.good{ color: var(--green); }
+  .feedback.bad{ color: var(--red); }
+
+  /* end screen */
+  .end{
+    text-align:center;
+    padding: 30px 10px 10px;
+    display:none;
+  }
+
+  .end .medal{
+    font-size: 60px;
+    margin-bottom: 6px;
+  }
+
+  .end h2{
+    font-family:'Caveat', cursive;
+    font-size: 46px;
+    margin: 0 0 6px;
+    color: var(--yellow);
+  }
+
+  .end p{
+    color: var(--chalk-dim);
+    font-size: 14px;
+    margin: 0 0 26px;
+  }
+
+  .retry{
+    padding: 14px 32px;
+    background: var(--yellow);
+    color: var(--board);
+    border:none;
+    border-radius: 30px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    cursor:pointer;
+    transition: transform .15s ease;
+  }
+
+  .retry:hover{ transform: scale(1.05); }
+
+  footer{
+    text-align:center;
+    margin-top: 40px;
+    font-size: 11px;
+    color: rgba(205,214,205,0.4);
+    letter-spacing: 0.1em;
+  }
+
+  @media (max-width: 380px){
+    h1{ font-size: 42px; }
+    .question{ font-size: 46px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <header>
+    <p class="eyebrow">Reto matemático</p>
+    <h1>Tabla<span> × </span>Rápida</h1>
+  </header>
+
+  <div id="game">
+    <div class="status">
+      <span id="counter">Pregunta 1 de 10</span>
+      <span class="score">Puntos: <span id="scoreVal">0</span>/100</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="card">
+      <div class="question" id="question">— × —</div>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback">&nbsp;</div>
+    </div>
+  </div>
+
+  <div class="end" id="end">
+    <div class="medal" id="medal">🏆</div>
+    <h2 id="endScore">0 puntos</h2>
+    <p id="endMsg">¡Sigue practicando!</p>
+    <button class="retry" id="retryBtn">Jugar de nuevo</button>
+  </div>
+
+  <footer>× 10 RONDAS · 10 PUNTOS CADA UNA ×</footer>
+</div>
+
+<script>
+  const TOTAL_ROUNDS = 10;
+  const POINTS_PER_Q = 10;
+
+  let round = 0;
+  let score = 0;
+  let locked = false;
+
+  const questionEl = document.getElementById('question');
+  const optionsEl = document.getElementById('options');
+  const feedbackEl = document.getElementById('feedback');
+  const counterEl = document.getElementById('counter');
+  const scoreValEl = document.getElementById('scoreVal');
+  const progressFill = document.getElementById('progressFill');
+  const gameEl = document.getElementById('game');
+  const endEl = document.getElementById('end');
+  const endScoreEl = document.getElementById('endScore');
+  const endMsgEl = document.getElementById('endMsg');
+  const medalEl = document.getElementById('medal');
+  const retryBtn = document.getElementById('retryBtn');
+
+  retryBtn.addEventListener('click', startGame);
+
+  function startGame(){
+    round = 0;
+    score = 0;
+    locked = false;
+    endEl.style.display = 'none';
+    gameEl.style.display = 'block';
+    scoreValEl.textContent = 0;
+    progressFill.style.width = '0%';
+    nextQuestion();
+  }
+
+  function randInt(min, max){
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function nextQuestion(){
+    if(round >= TOTAL_ROUNDS){
+      showEnd();
+      return;
+    }
+    round++;
+    locked = false;
+    counterEl.textContent = `Pregunta ${round} de ${TOTAL_ROUNDS}`;
+    progressFill.style.width = `${((round-1)/TOTAL_ROUNDS)*100}%`;
+    feedbackEl.textContent = '\u00A0';
+    feedbackEl.className = 'feedback';
+
+    const a = randInt(2, 10);
+    const b = randInt(2, 10);
+    const correct = a * b;
+    questionEl.innerHTML = `${a}<span class="op">×</span>${b}`;
+
+    // build 4 unique options including the correct one
+    const opts = new Set([correct]);
+    while(opts.size < 4){
+      const offset = randInt(-10, 10);
+      let fake = correct + offset;
+      if(fake < 0) fake = correct + Math.abs(offset) + 1;
+      if(fake !== correct) opts.add(fake);
+    }
+    const shuffled = [...opts].sort(() => Math.random() - 0.5);
+
+    optionsEl.innerHTML = '';
+    shuffled.forEach(val => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.textContent = val;
+      btn.addEventListener('click', () => handleAnswer(btn, val, correct));
+      optionsEl.appendChild(btn);
+    });
+  }
+
+  function handleAnswer(btn, chosen, correct){
+    if(locked) return;
+    locked = true;
+
+    const allBtns = optionsEl.querySelectorAll('.opt');
+    allBtns.forEach(b => b.disabled = true);
+
+    if(chosen === correct){
+      btn.classList.add('correct');
+      score += POINTS_PER_Q;
+      scoreValEl.textContent = score;
+      feedbackEl.textContent = '¡Correcto! 🎉';
+      feedbackEl.className = 'feedback good';
+    } else {
+      btn.classList.add('wrong');
+      allBtns.forEach(b => {
+        if(Number(b.textContent) === correct) b.classList.add('correct');
+      });
+      feedbackEl.textContent = `Casi... la respuesta era ${correct}`;
+      feedbackEl.className = 'feedback bad';
+    }
+
+    progressFill.style.width = `${(round/TOTAL_ROUNDS)*100}%`;
+
+    setTimeout(nextQuestion, 1100);
+  }
+
+  function showEnd(){
+    gameEl.style.display = 'none';
+    endEl.style.display = 'block';
+    endScoreEl.textContent = `${score} puntos`;
+
+    if(score === 100){
+      medalEl.textContent = '🏆';
+      endMsgEl.textContent = '¡Puntaje perfecto! Eres un genio de las tablas.';
+    } else if(score >= 70){
+      medalEl.textContent = '🥇';
+      endMsgEl.textContent = '¡Muy bien hecho! Casi perfecto.';
+    } else if(score >= 40){
+      medalEl.textContent = '🥈';
+      endMsgEl.textContent = 'Buen intento, ¡sigue practicando!';
+    } else {
+      medalEl.textContent = '📘';
+      endMsgEl.textContent = 'No te rindas, inténtalo de nuevo.';
+    }
+  }
+
+  startGame();
+</script>
+
+</body>
+</html>
